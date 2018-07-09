@@ -78,7 +78,7 @@ def knn_impute_turi_col(target, attributes, k):
                 for index in ref_label:
                     if target[index] != None:
                         to_cal.append(target[index])
-            if isinstance(to_cal[0], int) or isinstance(to_cal[0], float):
+            if isinstance(to_cal[0], float):
                 new_value = np.mean(to_cal)
             else:
                 new_value = stats.mode(to_cal)[0][0]
