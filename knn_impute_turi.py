@@ -1,16 +1,11 @@
-
-# coding: utf-8
-
-# In[ ]:
-
-
 import turicreate as tc
 import numpy as np
 import pandas as pd
 from scipy import stats
+import tqdm
 
 
-# In[ ]:
+# In[36]:
 
 
 def get_nan_col(table):
@@ -28,17 +23,18 @@ def get_nan_col(table):
     #Don't know how to do it with turicreate.SFrame
     #ANY Suggestion is WELCOME!
     nan_col = []
-    table_pd = table.to_dataframe
-    for i in range(1,table.shape[1]):
+    table_pd = table.to_dataframe()
+    table_pd = table_pd.drop(['X1'],axis=1)
+    for i in range(1,table_pd.shape[1]):
         if table_pd.iloc[:,i].isnull().values.any():
             nan_col.append(table_pd.iloc[:,i].name)
     return nan_col
 
 
-# In[ ]:
+# In[37]:
 
 
-def knn_impute_turi_col(target, attributes, k):
+def knn_impute_turi_col(target, attributes, knn):
     
     '''
     This method will replace the None values in the column 'target'
@@ -61,7 +57,7 @@ def knn_impute_turi_col(target, attributes, k):
     
     target = list(target)
     knn_model = tc.nearest_neighbors.create(attributes, verbose = False)
-    for i in range(0,len(target)):
+    for i in tqdm.tqdm_notebook(range(0,len(target))):
         if target[i] == None:
             query_result = knn_model.query(attributes[i:i+1], k=knn, verbose = False)
             ref_label = query_result['reference_label']
@@ -86,7 +82,7 @@ def knn_impute_turi_col(target, attributes, k):
     return target
 
 
-# In[ ]:
+# In[38]:
 
 
 def knn_impute_turi(sframe,k):
@@ -114,8 +110,7 @@ def knn_impute_turi(sframe,k):
     knn_cleaned_cols = tc.SFrame()
     nan_col = get_nan_col(sframe)
     attributes = sframe.remove_columns(nan_col)
-    for i in range(0,len(nan_col)):
+    for i in tqdm.tqdm_notebook(range(0,len(nan_col))):
         target = list(sframe[nan_col[i]])
         knn_cleaned_cols = knn_cleaned_cols.add_column(tc.SArray(knn_impute_turi_col(target,attributes,k)),column_name = nan_col[i])
     return attributes.add_columns(knn_cleaned_cols)
-
